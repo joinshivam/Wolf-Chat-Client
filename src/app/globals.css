@@ -1,8 +1,14 @@
 @import "tailwindcss";
 
 :root {
-  /* --background: #ffffff; */
-  /* --foreground: #171717; */
+  /* --background: #f5f6f7; */
+  /* --color: #111827; */
+}
+
+html,
+body {
+  background-color: #f5f6f7;
+  color: #111827;
 }
 
 @theme inline {
@@ -18,7 +24,12 @@
     /* --foreground: #ededed; */
   }
 }
-
+.main-logo{
+  color: #005d14;
+  font-weight: 800;
+  position: relative;
+  -webkit-text-stroke: 1px #c2c2c2;
+}
 body {
   /* background: var(--background); */
   color: var(--foreground);

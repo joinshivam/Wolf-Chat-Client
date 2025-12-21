@@ -3,11 +3,7 @@ const nextConfig = {
     images: {
         domains: ['res.cloudinary.com' , 'picsum.photos'],
     },
-    experimental: {
-        turbo: {
-            devOverlay: false, // Turbopack ka overlay icon hide karega
-        },
-    },
+    devIndicators:false,
 };
 
 export default nextConfig;
