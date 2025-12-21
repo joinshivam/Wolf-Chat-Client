@@ -3,7 +3,7 @@ import { io } from "socket.io-client";
 
 export function createSocket(chatId) {
   const { hostname, port, protocol } = window.location;
-  return io(`http://localhost:5000`, {
+  return io(`https://server_wolf_chat.railway.app/`, {
     auth: { chatId },
     transports: ["websocket"],
   });
