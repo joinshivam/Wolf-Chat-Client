@@ -31,85 +31,83 @@ export default function ChatPage() {
   /* ---------- INIT (CLIENT ONLY) ---------- */
 
   useEffect(() => {
+    let socket;
+
     try {
       setMounted(true);
       setLoading(true);
-      let chatId = localStorage.getItem("chatId");
-      let sessionId = localStorage.getItem("WF_sessionId");
+
+      const chatId = localStorage.getItem("chatId");
+      const sessionId = localStorage.getItem("WF_sessionId");
+
+      /* ---------- AUTH GUARD ---------- */
       if (!sessionId) {
-        setLoading(true);
-        setStatus("unauthorize...");
-        setTimeout(() => {
-          router.replace("/");
-        }, 1000)
+        setStatus("Unauthorized");
+        setTimeout(() => router.replace("/"), 1000);
+        return; // 🔴 REQUIRED
       }
+
       if (!chatId) {
-        setLoading(true);
-        setStatus("unauthorize...");
-        chatId = crypto.randomUUID();
-        if (!chatId) {
-          setTimeout(() => {
-            router.replace("/");
-          }, 1000)
+        const newId = crypto.randomUUID();
+        if (!newId) {
+          router.replace("/");
+          return;
         }
-        localStorage.setItem("chatId", chatId);
-
+        localStorage.setItem("chatId", newId);
       }
-      const userGender = sessionId.split("-")[1].toString();
-      setGender(userGender);
-      setMyChatId(chatId);
 
-      const socket = createSocket(chatId);
+      const finalChatId = localStorage.getItem("chatId");
+      setMyChatId(finalChatId);
+      setGender(sessionId.split("-")[1]);
+
+      /* ---------- SOCKET INIT ---------- */
+      socket = createSocket(finalChatId);
       socketRef.current = socket;
-      setStatus("Server 500 Error");
-      socket.on("connect", () => {
-        socket.timeout(3000).emit(
-          "health:check",
-          { source: "chat client" },
-          (err, responce) => {
-            if (err) {
-              setStatus(`Connection Err : ${err.message}`);
-              return;
-            }
-            if (responce.status = "ok") {
-              setStatus("");
-              setLoading(false);
-            } else {
-              setLoading(true);
-              setStatus(`Internal Server Error`);
-              return;
-            }
-          }
-        )
-      })
+      const connectionTimer = setTimeout(() => {
+        setStatus("Server not responding");
+        setLoading(true);
+      }, 5000);
 
+      socket.on("connect", () => {
+        setStatus("Connecting…");
+      });
 
       socket.on("chat:init", (data) => {
-        setStatus("initializing...");
+        clearTimeout(connectionTimer);
         setMaskedId(data.maskedChatId);
+        setStatus("");
+        setLoading(false);
       });
 
       socket.on("chat:history", (history) => {
+        clearTimeout(connectionTimer);
         setMessages(history);
       });
 
       socket.on("chat:message", (msg) => {
         setMessages((prev) => [...prev, msg]);
       });
+      socket.on("disconnect", () => {
+        setStatus("Disconnected");
+        setLoading(true);
+      });
+      const closeTools = (e) => {
+        if (e.target.closest(".chat-tools")) return;
+        setShowTools(false);
+      };
 
-
-      const closeTools = () => setShowTools(false);
       window.addEventListener("click", closeTools);
 
       return () => {
-        socket.disconnect();
+        socket?.disconnect();
         window.removeEventListener("click", closeTools);
       };
     } catch (err) {
-      setLoading(true);
       setStatus(err.message);
+      setLoading(true);
     }
   }, [router]);
+
 
   /* ---------- AUTOSCROLL ---------- */
   useEffect(() => {
