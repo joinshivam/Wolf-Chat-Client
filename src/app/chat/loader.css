@@ -18,12 +18,15 @@
 .loader-inner {
   text-align: center;
 }
+
 .neumo-text {
-  font-size: 4rem;
+  font-size: 2rem;
+  text-wrap: wrap;
   font-weight: 800;
   letter-spacing: 0.3rem;
   color: #e5e7eb;
   position: relative;
+  padding: 3px 16px;
   -webkit-text-stroke: 1px #c2c2c2;
   text-shadow:
     6px 6px 12px rgba(60, 57, 57, 0.6),

@@ -17,7 +17,7 @@ export default function ChatPage() {
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [gender, setGender] = useState("");
-  const [status, setStatus] = useState("loading...");
+  const [status, setStatus] = useState("");
   const [messages, setMessages] = useState([]);
   const [replyTo, setReplyTo] = useState(null);
   const [showTools, setShowTools] = useState(false);
@@ -38,30 +38,55 @@ export default function ChatPage() {
       let sessionId = localStorage.getItem("WF_sessionId");
       if (!sessionId) {
         setLoading(true);
-        setStatus("loading...");
+        setStatus("unauthorize...");
         setTimeout(() => {
           router.replace("/");
         }, 1000)
       }
       if (!chatId) {
+        setLoading(true);
+        setStatus("unauthorize...");
         chatId = crypto.randomUUID();
+        if (!chatId) {
+          setTimeout(() => {
+            router.replace("/");
+          }, 1000)
+        }
         localStorage.setItem("chatId", chatId);
+
       }
       const userGender = sessionId.split("-")[1].toString();
       setGender(userGender);
       setMyChatId(chatId);
-      setLoading(false);
-
 
       const socket = createSocket(chatId);
       socketRef.current = socket;
-      setLoading(true);
-      setStatus("Connecting...");
+      setStatus("Server 500 Error");
+      socket.on("connect", () => {
+        socket.timeout(3000).emit(
+          "health:check",
+          { source: "chat client" },
+          (err, responce) => {
+            if (err) {
+              setStatus(`Connection Err : ${err.message}`);
+              return;
+            }
+            if (responce.status = "ok") {
+              setStatus("");
+              setLoading(false);
+            } else {
+              setLoading(true);
+              setStatus(`Internal Server Error`);
+              return;
+            }
+          }
+        )
+      })
+
 
       socket.on("chat:init", (data) => {
         setStatus("initializing...");
         setMaskedId(data.maskedChatId);
-        setLoading(false);
       });
 
       socket.on("chat:history", (history) => {
