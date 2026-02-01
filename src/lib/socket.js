@@ -1,10 +1,13 @@
-// lib/socket.js
 import { io } from "socket.io-client";
 
 export function createSocket(chatId) {
-  const { hostname, port, protocol } = window.location;
-  return io(`https://bauth-backend.onrender.com/`, {
+  const socket = io(`https://bauth-backend.onrender.com/`, {
     auth: { chatId },
     transports: ["websocket"],
   });
+  socket.on("connect_error", (err) => {
+    return { isAlive: false, message: err.message };
+  })
+
+  return socket;
 }
